@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meu Álbum 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        -webkit-tap-highlight-color: transparent;
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans select-none">
+
+    <!-- Header Fixo -->
+    <div class="sticky top-0 bg-white shadow-md p-4 z-10">
+        <h1 class="text-xl font-bold text-center text-blue-800">Copa 2026 Tracker</h1>
+        <div class="flex justify-between items-center mt-2 px-2">
+            <span id="contador" class="text-sm font-semibold text-gray-600">Carregando...</span>
+            <div class="w-2/3 bg-gray-200 h-2 rounded-full overflow-hidden">
+                <div id="barra" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Figurinhas -->
+    <div id="grid" class="p-3 grid grid-cols-5 gap-2 max-w-lg mx-auto">
+        <!-- As figurinhas serão geradas aqui pelo JavaScript -->
+    </div>
+
+    <script>
+        const TOTAL_FIGURINHAS = 670; // Ajuste conforme o álbum oficial sair
+        let obtidas = JSON.parse(localStorage.getItem('minhas_figurinhas')) || [];
+
+        const grid = document.getElementById('grid');
+        const contador = document.getElementById('contador');
+        const barra = document.getElementById('barra');
+
+        function atualizarStatus() {
+            contador.innerText = `${obtidas.length} / ${TOTAL_FIGURINHAS}`;
+            const progresso = (obtidas.length / TOTAL_FIGURINHAS) * 100;
+            barra.style.width = progresso + '%';
+            localStorage.setItem('minhas_figurinhas', JSON.stringify(obtidas));
+        }
+
+        function toggleFigurinha(num) {
+            const index = obtidas.indexOf(num);
+            if (index > -1) {
+                obtidas.splice(index, 1); // Remove se já existir (clique acidental)
+            } else {
+                obtidas.push(num); // Adiciona se não tiver
+            }
+            document.getElementById(`fig-${num}`).classList.toggle('bg-blue-600');
+            document.getElementById(`fig-${num}`).classList.toggle('text-white');
+            document.getElementById(`fig-${num}`).classList.toggle('bg-white');
+            document.getElementById(`fig-${num}`).classList.toggle('text-gray-400');
+            atualizarStatus();
+        }
+
+        // Gerar figurinhas
+        for (let i = 1; i <= TOTAL_FIGURINHAS; i++) {
+            const estaObtida = obtidas.includes(i);
+            const btn = document.createElement('div');
+            btn.id = `fig-${i}`;
+            btn.className = `h-12 flex items-center justify-center rounded-lg border border-gray-200 font-bold text-sm transition-colors cursor-pointer 
+                ${estaObtida ? 'bg-blue-600 text-white' : 'bg-white text-gray-400'}`;
+            btn.innerText = i;
+            btn.onclick = () => toggleFigurinha(i);
+            grid.appendChild(btn);
+        }
+
+        atualizarStatus();
+    </script>
+</body>
+</html>
