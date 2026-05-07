@@ -3,73 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meu Álbum 2026</title>
+    <title>Álbum Copa 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        -webkit-tap-highlight-color: transparent;
+        body { -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans select-none">
+<body class="bg-slate-50 font-sans">
 
     <!-- Header Fixo -->
-    <div class="sticky top-0 bg-white shadow-md p-4 z-10">
-        <h1 class="text-xl font-bold text-center text-blue-800">Copa 2026 Tracker</h1>
-        <div class="flex justify-between items-center mt-2 px-2">
-            <span id="contador" class="text-sm font-semibold text-gray-600">Carregando...</span>
-            <div class="w-2/3 bg-gray-200 h-2 rounded-full overflow-hidden">
-                <div id="barra" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+    <div class="sticky top-0 bg-white/80 backdrop-blur-md shadow-sm p-4 z-20 border-b">
+        <h1 class="text-center font-black text-slate-800 tracking-tight">COPA 2026 TRACKER</h1>
+        
+        <div class="max-w-md mx-auto mt-3">
+            <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1 px-1">
+                <span id="contador-texto">0 / 980</span>
+                <span id="porcentagem">0%</span>
             </div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div id="barra-progresso" class="bg-green-500 h-full transition-all duration-500 w-0"></div>
+            </div>
+        </div>
+
+        <!-- Atalhos de Navegação Rápida -->
+        <div class="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1 text-xs">
+            <button onclick="scrollPara(1)" class="bg-slate-800 text-white px-3 py-1 rounded-full shrink-0">1-100</button>
+            <button onclick="scrollPara(200)" class="bg-slate-800 text-white px-3 py-1 rounded-full shrink-0">200-300</button>
+            <button onclick="scrollPara(400)" class="bg-slate-800 text-white px-3 py-1 rounded-full shrink-0">400-500</button>
+            <button onclick="scrollPara(600)" class="bg-slate-800 text-white px-3 py-1 rounded-full shrink-0">600-700</button>
+            <button onclick="scrollPara(800)" class="bg-slate-800 text-white px-3 py-1 rounded-full shrink-0">800-980</button>
         </div>
     </div>
 
-    <!-- Grid de Figurinhas -->
-    <div id="grid" class="p-3 grid grid-cols-5 gap-2 max-w-lg mx-auto">
-        <!-- As figurinhas serão geradas aqui pelo JavaScript -->
-    </div>
+    <!-- Lista de Figurinhas -->
+    <main class="p-4 max-w-2xl mx-auto">
+        <div id="grid-container" class="sticker-grid">
+            <!-- Gerado via JS -->
+        </div>
+    </main>
 
     <script>
-        const TOTAL_FIGURINHAS = 670; // Ajuste conforme o álbum oficial sair
-        let obtidas = JSON.parse(localStorage.getItem('minhas_figurinhas')) || [];
+        const TOTAL = 980;
+        let obtidas = new Set(JSON.parse(localStorage.getItem('album2026_data')) || []);
 
-        const grid = document.getElementById('grid');
-        const contador = document.getElementById('contador');
-        const barra = document.getElementById('barra');
+        const grid = document.getElementById('grid-container');
+        const barra = document.getElementById('barra-progresso');
+        const contadorTexto = document.getElementById('contador-texto');
+        const porcentagemTexto = document.getElementById('porcentagem');
 
-        function atualizarStatus() {
-            contador.innerText = `${obtidas.length} / ${TOTAL_FIGURINHAS}`;
-            const progresso = (obtidas.length / TOTAL_FIGURINHAS) * 100;
+        function salvar() {
+            localStorage.setItem('album2026_data', JSON.stringify([...obtidas]));
+            const progresso = (obtidas.size / TOTAL) * 100;
             barra.style.width = progresso + '%';
-            localStorage.setItem('minhas_figurinhas', JSON.stringify(obtidas));
+            contadorTexto.innerText = `${obtidas.size} / ${TOTAL}`;
+            porcentagemTexto.innerText = Math.round(progresso) + '%';
         }
 
-        function toggleFigurinha(num) {
-            const index = obtidas.indexOf(num);
-            if (index > -1) {
-                obtidas.splice(index, 1); // Remove se já existir (clique acidental)
+        function toggle(n, el) {
+            if (obtidas.has(n)) {
+                obtidas.delete(n);
+                el.classList.replace('bg-green-500', 'bg-white');
+                el.classList.replace('text-white', 'text-slate-400');
+                el.classList.replace('border-green-600', 'border-slate-200');
             } else {
-                obtidas.push(num); // Adiciona se não tiver
+                obtidas.add(n);
+                el.classList.replace('bg-white', 'bg-green-500');
+                el.classList.replace('text-slate-400', 'text-white');
+                el.classList.replace('border-slate-200', 'border-green-600');
             }
-            document.getElementById(`fig-${num}`).classList.toggle('bg-blue-600');
-            document.getElementById(`fig-${num}`).classList.toggle('text-white');
-            document.getElementById(`fig-${num}`).classList.toggle('bg-white');
-            document.getElementById(`fig-${num}`).classList.toggle('text-gray-400');
-            atualizarStatus();
+            salvar();
         }
 
-        // Gerar figurinhas
-        for (let i = 1; i <= TOTAL_FIGURINHAS; i++) {
-            const estaObtida = obtidas.includes(i);
-            const btn = document.createElement('div');
-            btn.id = `fig-${i}`;
-            btn.className = `h-12 flex items-center justify-center rounded-lg border border-gray-200 font-bold text-sm transition-colors cursor-pointer 
-                ${estaObtida ? 'bg-blue-600 text-white' : 'bg-white text-gray-400'}`;
-            btn.innerText = i;
-            btn.onclick = () => toggleFigurinha(i);
-            grid.appendChild(btn);
+        function scrollPara(num) {
+            const el = document.getElementById(`card-${num}`);
+            if (el) {
+                const offset = 160; // Compensar o header fixo
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = el.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
         }
 
-        atualizarStatus();
+        // Criar os cards de forma eficiente
+        const fragment = document.createDocumentFragment();
+        for (let i = 1; i <= TOTAL; i++) {
+            const div = document.createElement('div');
+            div.id = `card-${i}`;
+            const check = obtidas.has(i);
+            
+            div.className = `h-14 flex flex-col items-center justify-center rounded-lg border-2 font-bold transition-all active:scale-90 cursor-pointer 
+                ${check ? 'bg-green-500 text-white border-green-600' : 'bg-white text-slate-400 border-slate-200'}`;
+            
+            div.innerHTML = `<span class="text-[8px] uppercase opacity-50">Nº</span><span>${i}</span>`;
+            div.onclick = () => toggle(i, div);
+            fragment.appendChild(div);
+        }
+        grid.appendChild(fragment);
+
+        // Inicializar progresso
+        salvar();
     </script>
 </body>
 </html>
